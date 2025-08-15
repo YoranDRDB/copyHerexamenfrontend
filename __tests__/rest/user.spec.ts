@@ -61,6 +61,16 @@ describe("Users", () => {
       expect(response.status).toBe(400);
       expect(response.body.code).toBe("VALIDATION_FAILED");
     });
+    it("should 409 when email already exists", async () => {
+      const response = await request.post(url).send({
+        username: "DuplicateUser",
+        email: "test.user@hogent.be",
+        password: "SomePassword123",
+      });
+
+      expect(response.status).toBe(409);
+      expect(response.body.code).toBe("CONFLICT");
+    });
 
     testAuthHeader(() => request.post(url));
   });
@@ -195,7 +205,7 @@ describe("Users", () => {
         data: {
           username: "DeleteMe",
           email: "deleteme@example.com",
-          passwordhash: await hashPassword("12345678"),
+          passwordHash: await hashPassword("12345678"),
           role: Role.USER,
         },
       });
@@ -220,7 +230,7 @@ describe("Users", () => {
         data: {
           username: "SelfDelete",
           email: "selfdelete@example.com",
-          passwordhash: await hashPassword("12345678"),
+          passwordHash: await hashPassword("12345678"),
           role: Role.USER,
         },
       });

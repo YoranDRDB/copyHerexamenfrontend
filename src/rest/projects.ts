@@ -45,11 +45,12 @@ getAllProjects.validationScheme = null;
  * @apiName CreateProject
  * @apiGroup Projects
  *
- * @apiHeader {String} Content-Type Authorization Bearer token.
+ * @apiHeader {String} Authorization Bearer token.
+ * @apiHeader {String} Content-Type application/json.
  *
  * @apiParam {String} name Naam van het project.
  * @apiParam {String} [description] Beschrijving van het project.
- ** @apiParamExample {json} Request-Body:
+ * @apiParamExample {json} Request-Body:
  *     {
  *       "name": "Nieuw Project",
  *       "description": "Beschrijving van het nieuwe project"
@@ -57,7 +58,7 @@ getAllProjects.validationScheme = null;
  * @apiSuccess {Number} id ID van het aangemaakte project.
  * @apiSuccess {String} name Naam van het project.
  * @apiSuccess {String} [description] Beschrijving van het project.
- ** @apiSuccessExample {json} Succesrespons:
+ * @apiSuccessExample {json} Succesrespons:
  *     HTTP/1.1 201 Created
  *     {
  *       "id": 123,
@@ -66,7 +67,7 @@ getAllProjects.validationScheme = null;
  *     }
  * @apiError {String} code Foutcode.
  * @apiError {String} message Foutmelding.
- *  @apiErrorExample {json} Foutrespons:
+ * @apiErrorExample {json} Foutrespons:
  *     HTTP/1.1 400 Bad Request
  *     {
  *       "code": "VALIDATION_FAILED",

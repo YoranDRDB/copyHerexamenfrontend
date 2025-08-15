@@ -36,6 +36,13 @@ const getAllTags = async (ctx: KoaContext<GetAllTagsResponse>) => {
   const items = await tagService.getAll();
   ctx.body = { items };
 };
+const idParam = Joi.number().integer().positive().required().messages({
+  "number.base": "Invalid tag id",
+  "number.integer": "Invalid tag id",
+  "number.positive": "Invalid tag id",
+  "any.required": "Invalid tag id",
+});
+
 getAllTags.validationScheme = null;
 
 /**
@@ -81,9 +88,19 @@ const createTag = async (
   ctx.status = 201;
   ctx.body = newTag;
 };
+//createTag.validationScheme = {
+//  body: {
+//    name: Joi.string().min(1).required(),
+//  },
+//};
+
 createTag.validationScheme = {
   body: {
-    name: Joi.string().min(1).required(),
+    name: Joi.string().required().messages({
+      "any.required": "Name is required",
+      "string.base": "Name must be a string",
+      "string.empty": "Name is required",
+    }),
   },
 };
 
@@ -108,10 +125,10 @@ const getTagById = async (
   const tag = await tagService.getById(ctx.params.id);
   ctx.body = tag;
 };
-getTagById.validationScheme = {
-  params: { id: Joi.number().integer().positive().required() },
-};
-
+//getTagById.validationScheme = {
+//  params: { id: Joi.number().integer().positive().required() },
+//};
+getTagById.validationScheme = { params: { id: idParam } };
 /**
  * @api {put} /tags/:id Update a tag by ID
  * @apiName UpdateTag
@@ -134,11 +151,19 @@ const updateTag = async (
   const tag = await tagService.updateById(ctx.params.id, ctx.request.body);
   ctx.body = tag;
 };
+//updateTag.validationScheme = {
+//  params: { id: Joi.number().integer().positive().required() },
+//  body: { name: Joi.string().min(1).optional() },
+//};
 updateTag.validationScheme = {
-  params: { id: Joi.number().integer().positive().required() },
-  body: { name: Joi.string().min(1).optional() },
+  params: { id: idParam },
+  body: {
+    name: Joi.string().messages({
+      "string.base": "Name must be a string",
+      "string.empty": "Name is required",
+    }),
+  },
 };
-
 /**
  * @api {delete} /tags/:id Delete a tag by ID
  * @apiName DeleteTag
@@ -158,10 +183,11 @@ const deleteTag = async (ctx: KoaContext<void, { id: number }>) => {
   await tagService.deleteById(ctx.params.id);
   ctx.status = 204;
 };
-deleteTag.validationScheme = {
-  params: { id: Joi.number().integer().positive().required() },
+//deleteTag.validationScheme = {
+//  params: { id: Joi.number().integer().positive().required() },
+//};
+deleteTag.validationScheme = { params: { id: idParam },
 };
-
 /**
  * Registers all tag-related routes on the given parent router.
  *

@@ -21,7 +21,7 @@ const data = {
       description: "First task",
       status: "open",
       priority: "medium",
-      due_date: new Date(2023, 10, 15),
+      due_date: new Date("2023-11-15"),
     },
     {
       id: 2,
@@ -30,15 +30,15 @@ const data = {
       description: "Second task",
       status: "in_progress",
       priority: "high",
-      due_date: new Date(2023, 11, 1),
+      due_date: new Date("2023-12-01"),
     },
   ],
 };
 
-const dataToDelete = {
+const getDataToDelete = () => ({
   projects: [1],
   tasks: [1, 2],
-};
+});
 
 describe("Tasks", () => {
   let request: supertest.Agent;
@@ -53,6 +53,7 @@ describe("Tasks", () => {
   const url = "/api/tasks";
 
   describe("GET /api/tasks", () => {
+    const dataToDelete = getDataToDelete();
     beforeAll(async () => {
       await prisma.project.createMany({ data: data.projects });
       await prisma.task.createMany({ data: data.tasks });
@@ -100,6 +101,7 @@ describe("Tasks", () => {
   });
 
   describe("GET /api/tasks/:id", () => {
+    const dataToDelete = getDataToDelete();
     beforeAll(async () => {
       await prisma.project.createMany({ data: data.projects });
       await prisma.task.createMany({ data: data.tasks });
@@ -147,9 +149,17 @@ describe("Tasks", () => {
   });
 
   describe("POST /api/tasks", () => {
+    const dataToDelete = { projects: [1], tasks: [] as number[] };
+
+    beforeAll(async () => {
+      await prisma.project.createMany({ data: data.projects });
+    });
     afterAll(async () => {
       await prisma.task.deleteMany({
         where: { id: { in: dataToDelete.tasks } },
+      });
+      await prisma.project.deleteMany({
+        where: { id: { in: dataToDelete.projects } },
       });
     });
 
@@ -178,6 +188,33 @@ describe("Tasks", () => {
 
       dataToDelete.tasks.push(response.body.id);
     });
+    it("should trim description and store null for empty strings", async () => {
+      const respTrim = await request
+        .post(url)
+        .send({
+          project_id: 1,
+          title: "Trimmed Task",
+          description: "  trimmed description  ",
+        })
+        .set("Authorization", authHeader);
+
+      expect(respTrim.statusCode).toBe(201);
+      expect(respTrim.body.description).toBe("trimmed description");
+      dataToDelete.tasks.push(respTrim.body.id);
+
+      const respNull = await request
+        .post(url)
+        .send({
+          project_id: 1,
+          title: "Null Task",
+          description: "   ",
+        })
+        .set("Authorization", authHeader);
+
+      expect(respNull.statusCode).toBe(201);
+      expect(respNull.body.description).toBeNull();
+      dataToDelete.tasks.push(respNull.body.id);
+    });
 
     it("should 400 for missing required fields", async () => {
       const response = await request
@@ -193,6 +230,7 @@ describe("Tasks", () => {
   });
 
   describe("PUT /api/tasks/:id", () => {
+    const dataToDelete = getDataToDelete();
     beforeAll(async () => {
       await prisma.project.createMany({ data: data.projects });
       await prisma.task.createMany({ data: data.tasks });
@@ -243,6 +281,7 @@ describe("Tasks", () => {
   });
 
   describe("DELETE /api/tasks/:id", () => {
+    const dataToDelete = getDataToDelete();
     beforeAll(async () => {
       await prisma.project.createMany({ data: data.projects });
       await prisma.task.createMany({ data: data.tasks });

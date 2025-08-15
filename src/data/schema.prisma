@@ -17,7 +17,7 @@ model User {
   id           Int             @id @default(autoincrement()) @db.UnsignedInt
   username     String          @db.VarChar(255)
   email        String          @unique(map: "idx_user_email_unique") @db.VarChar(255)
-  passwordhash String          @db.VarChar(255)
+  passwordHash String          @map("passwordhash")@db.VarChar(255)
   role         String          @db.VarChar(255)
   projects     Project[]
   taskAssignees TaskAssignee[]

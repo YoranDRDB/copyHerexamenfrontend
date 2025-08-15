@@ -7,6 +7,11 @@ export async function getAll(): Promise<Tag[]> {
 }
 
 export async function create(data: CreateTagRequest): Promise<Tag> {
+  const existing = await prisma.tag.findFirst({ where: { name: data.name } });
+  if (existing) {
+    throw ServiceError.validationFailed("A tag with this name already exists");
+  }
+
   return prisma.tag.create({
     data: {
       name: data.name,

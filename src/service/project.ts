@@ -32,7 +32,7 @@ export async function create(
     data: {
       owner_id: userId,
       name: data.name,
-      description: data.description || null,
+      description: data.description?.trim() || null,
     },
   });
   return project;
@@ -90,6 +90,9 @@ export async function updateById(
     where: { id: projectId },
     data: {
       ...changes,
+      ...(changes.description !== undefined && {
+        description: changes.description.trim() || null,
+      }),
     },
   });
 

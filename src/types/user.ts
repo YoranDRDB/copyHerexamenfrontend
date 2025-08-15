@@ -3,7 +3,7 @@ import type { Entity, ListResponse } from "./common";
 export interface User extends Entity {
   username: string;
   email: string;
-  passwordhash: string;
+  passwordHash: string;
   role: string;
 }
 
@@ -18,7 +18,7 @@ export interface PublicUser extends Pick<User, "id" | "username" | "email"> {}
 export interface UserUpdateInput {
   username?: string;
   email?: string;
-  password?: string; 
+  password?: string;
 }
 
 export interface LoginRequest {
@@ -42,7 +42,7 @@ export interface UpdateUserRequest {
   password?: string;
 }
 
-// Responses 
+// Responses
 export interface GetAllUsersResponse extends ListResponse<PublicUser> {}
 export interface GetUserByIdResponse extends PublicUser {}
 export interface UpdateUserResponse extends PublicUser {}

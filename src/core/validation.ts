@@ -92,7 +92,13 @@ function validate(schema: ValidationScheme | null): Middleware<KoaContext> {
 
     // Als er fouten zijn, gooi dan een 400 fout met details
     if (errors.size > 0) {
-      ctx.throw(400, "Validation failed, check details for more information", {
+      // pick the first message from Joi details
+      const first = [...errors.values()][0];
+      let message = "Validation failed";
+      if (Array.isArray(first) && first[0]?.message) message = first[0].message;
+      else if (typeof first === "string") message = first;
+
+      ctx.throw(400, message, {
         code: "VALIDATION_FAILED",
         details: Object.fromEntries(errors),
       });

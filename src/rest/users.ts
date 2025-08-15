@@ -21,11 +21,12 @@ import {
   authDelay,
 } from "../core/auth";
 import Role from "../core/roles";
+import ServiceError from "../core/serviceError";
 
 /**
  * Middleware to check user permissions for accessing specific user data.
  *
- * - Allows access to "me" for the logged-in user.
+ * - Allows access to "ik" for the logged-in user.
  * - Allows admins to access any user.
  * - Restricts other access.
  */
@@ -38,8 +39,8 @@ const checkUserId = (ctx: KoaContext<unknown, GetUserRequest>, next: Next) => {
   }
 
   const requestedId = Number(id);
-  if (isNaN(requestedId)) {
-    return ctx.throw(400, "Invalid user id", { code: "BAD_REQUEST" });
+  if (Number.isNaN(requestedId)) {
+    throw ServiceError.validationFailed("Invalid user id");
   }
 
   if (requestedId !== userId && role !== Role.ADMIN) {
@@ -145,8 +146,15 @@ registerUser.validationScheme = {
 const getUserById = async (
   ctx: KoaContext<GetUserByIdResponse, GetUserRequest>
 ) => {
-  const userIdToFetch =
-    ctx.params.id === "ik" ? ctx.state.session.userId : Number(ctx.params.id);
+  let userIdToFetch: number;
+  if (ctx.params.id === "ik") {
+    userIdToFetch = ctx.state.session.userId;
+  } else {
+    userIdToFetch = Number(ctx.params.id);
+    if (Number.isNaN(userIdToFetch)) {
+      throw ServiceError.validationFailed("Invalid user id");
+    }
+  }
   const user = await userService.getById(userIdToFetch);
   ctx.status = 200;
   ctx.body = user;
@@ -155,7 +163,7 @@ getUserById.validationScheme = {
   params: {
     id: Joi.alternatives().try(
       Joi.number().integer().positive(),
-      Joi.string().valid("me")
+      Joi.string().valid("ik")
     ),
   },
 };
@@ -240,6 +248,7 @@ export default (parent: KoaRouter) => {
 
   // Admin-only endpoint to retrieve all users
   const requireAdmin = makeRequireRole(Role.ADMIN);
+
   router.get(
     "/",
     requireAuthentication,

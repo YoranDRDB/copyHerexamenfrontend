@@ -1,11 +1,7 @@
 // helpers/testAuthHeader.ts
 import type supertest from "supertest";
 
-/**
- * Test of een endpoint correct reageert zonder of met een ongeldige Authorization header.
- * We gaan ervan uit dat jouw API bij ontbreken/ongeldigheid van een token een 401 teruggeeft
- * met code "UNAUTHORIZED" en een duidelijke foutboodschap.
- */
+
 export default function testAuthHeader(
   requestFactory: () => supertest.Test
 ): void {

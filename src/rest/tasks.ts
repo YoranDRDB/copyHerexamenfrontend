@@ -3,6 +3,7 @@ import Joi from "joi";
 import * as taskService from "../service/task";
 import { requireAuthentication } from "../core/auth";
 import validate from "../core/validation";
+import ServiceError from "../core/serviceError";
 import type {
   KoaRouter,
   KoaContext,
@@ -41,9 +42,13 @@ import type {
  */
 const getAllTasks = async (ctx: KoaContext<GetAllTasksResponse>) => {
   const userId = ctx.state.session.userId;
-  const projectId = ctx.request.query.project_id
-    ? Number(ctx.request.query.project_id)
-    : undefined;
+  let projectId: number | undefined;
+  if (ctx.request.query.project_id !== undefined) {
+    projectId = Number(ctx.request.query.project_id);
+    if (Number.isNaN(projectId)) {
+      throw ServiceError.validationFailed("Invalid project id");
+    }
+  }
   const items = await taskService.getAllForUser(userId, projectId);
   ctx.body = { items };
 };

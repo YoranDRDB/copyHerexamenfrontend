@@ -76,7 +76,7 @@ export const login = async (
     );
   }
 
-  const passwordValid = await verifyPassword(password, user.passwordhash);
+  const passwordValid = await verifyPassword(password, user.passwordHash);
 
   if (!passwordValid) {
     throw ServiceError.unauthorized(
@@ -93,25 +93,32 @@ export const register = async ({
   password,
 }: UserCreateInput): Promise<string> => {
   try {
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+
+    if (existingUser) {
+      throw ServiceError.conflict(
+        "There is already a user with this email address"
+      );
+    }
     const passwordHash = await hashPassword(password);
 
     const user = await prisma.user.create({
       data: {
         username,
         email,
-        passwordhash: passwordHash,
+        passwordHash,
         role: Role.USER,
       },
     });
 
     if (!user) {
       throw ServiceError.internalServerError(
-        "An unexpected error occured when creating the user"
+        "An unexpected error occurred when creating the user"
       );
     }
 
     return await generateJWT(user);
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw handleDBError(error);
   }
 };
@@ -140,7 +147,7 @@ export const updateById = async (
 
     // Als password moet worden aangepast, eerst hashen
     if (changes.password) {
-      data.passwordhash = await hashPassword(changes.password);
+      data.passwordHash = await hashPassword(changes.password);
       delete data.password; // password niet direct saven
     }
 

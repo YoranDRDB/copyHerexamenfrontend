@@ -1,53 +1,45 @@
 // src/service/_handleDBError.ts
-import ServiceError from "../core/serviceError"; 
+import ServiceError from "../core/serviceError";
 const handleDBError = (error: any) => {
-  const { code = "", message } = error;
+  const code = error?.code ?? "";
+  const model = error?.meta?.modelName ?? "";
+  const target = error?.meta?.target ?? "";
 
   if (code === "P2002") {
-    switch (true) {
-      case message.includes("idx_place_name_unique"):
-        throw ServiceError.validationFailed(
-          "A place with this name already exists"
-        );
-      case message.includes("idx_user_email_unique"):
-        throw ServiceError.validationFailed(
-          "There is already a user with this email address"
-        );
-      default:
-        throw ServiceError.validationFailed("This item already exists");
+    if (model === "User" && String(target).includes("idx_user_email_unique")) {
+      throw ServiceError.validationFailed(
+        "There is already a user with this email address"
+      );
     }
-  }
-
-  if (code === "P2025") {
-    switch (true) {
-      case message.includes("fk_transaction_user"):
-        throw ServiceError.notFound("This user does not exist");
-      case message.includes("fk_transaction_place"):
-        throw ServiceError.notFound("This place does not exist");
-      case message.includes("transaction"):
-        throw ServiceError.notFound("No transaction with this id exists");
-      case message.includes("place"):
-        throw ServiceError.notFound("No place with this id exists");
-      case message.includes("user"):
-        throw ServiceError.notFound("No user with this id exists");
+    if (model === "TaskAssignee" && target === "PRIMARY") {
+      throw ServiceError.validationFailed(
+        "This user is already assigned to this task"
+      );
+    }
+    if (model === "TaskTag" && target === "PRIMARY") {
+      throw ServiceError.validationFailed(
+        "This tag is already attached to this task"
+      );
     }
   }
 
   if (code === "P2003") {
-    switch (true) {
-      case message.includes("place_id"):
-        throw ServiceError.conflict(
-          "This place does not exist or is still linked to transactions"
-        );
-      case message.includes("user_id"):
-        throw ServiceError.conflict(
-          "This user does not exist or is still linked to transactions"
-        );
-    }
+    const msg = String(error?.message ?? "");
+    if (msg.includes("fk_project_owner"))
+      throw ServiceError.conflict("Owner user does not exist");
+    if (msg.includes("fk_task_project"))
+      throw ServiceError.conflict("Project does not exist or is linked");
+    if (msg.includes("fk_taskassignee_user"))
+      throw ServiceError.conflict("Assigned user does not exist");
+    if (msg.includes("fk_taskassignee_task"))
+      throw ServiceError.conflict("Task does not exist");
+    if (msg.includes("fk_tasktag_tag"))
+      throw ServiceError.conflict("Tag does not exist");
+    if (msg.includes("fk_tasktag_task"))
+      throw ServiceError.conflict("Task does not exist");
   }
-
   // Rethrow we don't know what happened
   throw error;
 };
 
-export default handleDBError; 
+export default handleDBError;

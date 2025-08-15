@@ -8,7 +8,6 @@ const LOG_LEVEL = config.get<string>("log.level");
 const LOG_DISABLED = config.get<boolean>("log.disabled");
 
 const loggerFormat = () => {
-
   const formatMessage = ({
     level,
     message,
@@ -18,7 +17,6 @@ const loggerFormat = () => {
     return `${timestamp} | ${level} | ${message} | ${JSON.stringify(rest)}`;
   };
 
-  
   const formatError = (info: winston.Logform.TransformableInfo) => {
     const { error, ...rest } = info;
     let stack = "";
@@ -32,14 +30,12 @@ const loggerFormat = () => {
     return `${formatMessage(rest)}\n\n${stack}\n`;
   };
 
- 
   const format = (info: winston.Logform.TransformableInfo) => {
- 
     if (info?.["error"] instanceof Error) {
       return formatError(info);
     }
 
-    return formatMessage(info); 
+    return formatMessage(info);
   };
 
   return combine(colorize(), timestamp(), printf(format));

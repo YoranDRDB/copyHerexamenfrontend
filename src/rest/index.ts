@@ -1,5 +1,5 @@
 import Router from "@koa/router";
-import installHealthRouter from "./health";
+import installHealthRoutes from "./health";
 import installUserRouter from "./users";
 import installProjectRouter from "./projects";
 import installSessionRouter from "./session";
@@ -17,13 +17,13 @@ import type {
  *
  * @param {KoaApplication} app The main Koa application instance.
  */
-export default (app: KoaApplication) => {
+export default function installRest(app: KoaApplication) {
   const router = new Router<TaakBeheerState, TaakBeheerContext>({
     prefix: "/api", // All routes will be prefixed with /api
   });
 
   // Install individual route modules
-  installHealthRouter(router); // Health check routes
+  installHealthRoutes(router); // Health check routes
   installUserRouter(router); // User-related routes
   installProjectRouter(router); // Project-related routes
   installSessionRouter(router); // Session (authentication) routes
@@ -32,4 +32,4 @@ export default (app: KoaApplication) => {
 
   // Register the router with the Koa application
   app.use(router.routes()).use(router.allowedMethods());
-};
+}

@@ -27,7 +27,7 @@ const asyncJwtVerify = util.promisify<
 >(jwt.verify);
 
 export const generateJWT = async (user: User): Promise<string> => {
-  const tokenData = { roles: user.role };
+  const tokenData = { role: user.role };
 
   const signOptions = {
     expiresIn: Math.floor(JWT_EXPIRATION_INTERVAL),

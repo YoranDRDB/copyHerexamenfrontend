@@ -14,8 +14,9 @@ export default function installMiddlewares(app: KoaApplication) {
   app.use(
     koaCors({
       origin: (ctx) => {
-        if (CORS_ORIGINS.indexOf(ctx.request.header.origin!) !== -1) {
-          return ctx.request.header.origin!;
+        const requestOrigin = ctx.request.header.origin;
+        if (requestOrigin && CORS_ORIGINS.indexOf(requestOrigin) !== -1) {
+          return requestOrigin;
         }
         // Not a valid domain at this point, let's return the first valid as we should return a string
         return CORS_ORIGINS[0] || "";
@@ -46,18 +47,44 @@ export default function installMiddlewares(app: KoaApplication) {
   app.use(async (ctx, next) => {
     try {
       await next();
-    } catch (error: any) {
-      getLogger().error("Error occured while handling a request", { error });
+    } catch (error: unknown) {
+      getLogger().error("Error occurred while handling a request", { error });
 
-      let statusCode = error.status || 500;
-      const errorBody = {
-        code: error.code || "INTERNAL_SERVER_ERROR",
+      let statusCode = 500;
+      const errorBody: {
+        code: string;
+        message: string;
+        details?: unknown;
+        stack?: string;
+      } = {
+        code: "INTERNAL_SERVER_ERROR",
         // Do not expose the error message in production
-        message:
-          error.message || "Unexpected error occurred. Please try again later.",
-        details: error.details,
-        stack: NODE_ENV !== "production" ? error.stack : undefined,
+        message: "Unexpected error occurred. Please try again later.",
       };
+      if (typeof error === "object" && error !== null) {
+        const err = error as {
+          status?: number;
+          code?: string;
+          message?: string;
+          details?: unknown;
+          stack?: string;
+        };
+        if (typeof err.status === "number") {
+          statusCode = err.status;
+        }
+        if (typeof err.code === "string") {
+          errorBody.code = err.code;
+        }
+        if (typeof err.message === "string") {
+          errorBody.message = err.message;
+        }
+        if (err.details !== undefined) {
+          errorBody.details = err.details;
+        }
+        if (typeof err.stack === "string" && NODE_ENV !== "production") {
+          errorBody.stack = err.stack;
+        }
+      }
 
       if (error instanceof ServiceError) {
         errorBody.message = error.message;

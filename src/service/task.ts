@@ -22,7 +22,8 @@ export async function getAllForUser(
 
   return prisma.task.findMany({
     where: {
-      project_id: projectId ? projectId : { in: allowedProjectIds },
+      project_id:
+        projectId !== undefined ? projectId : { in: allowedProjectIds },
     },
   });
 }
@@ -49,7 +50,7 @@ export async function create(
     data: {
       project_id: data.project_id,
       title: data.title,
-      description: data.description ?? null,
+      description: data.description?.trim() || null,
       status: data.status ?? "open",
       priority: data.priority ?? "medium",
       due_date: data.due_date ?? null,
@@ -113,7 +114,9 @@ export async function updateById(
     where: { id: taskId },
     data: {
       ...changes,
-      description: changes.description ?? null,
+      ...(changes.description !== undefined && {
+        description: changes.description.trim() || null,
+      }),
       due_date: changes.due_date ?? null,
     },
   });

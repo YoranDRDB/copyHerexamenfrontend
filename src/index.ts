@@ -1,6 +1,11 @@
 // src/index.ts
 import createServer from "./createServer";
-
+import { getLogger } from "./core/logging";
+const logger = getLogger();
+process.on("unhandledRejection", (reason) => {
+  logger.error("Unhandled promise rejection", { error: reason });
+  process.exit(-1);
+});
 async function main() {
   try {
     const server = await createServer();
@@ -14,7 +19,7 @@ async function main() {
     process.on("SIGTERM", onClose);
     process.on("SIGQUIT", onClose);
   } catch (error) {
-    console.log("\n", error);
+    getLogger().error("Error while starting the server", { error });
     process.exit(-1);
   }
 }

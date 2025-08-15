@@ -4,7 +4,7 @@ export default {
     disabled: false,
   },
   auth: {
-    maxDelay: 5000, // ms (0 seconds)
+    maxDelay: 10000, // ms (5 seconds)
     argon: {
       hashLength: 32,
       timeCost: 6,
@@ -17,7 +17,7 @@ export default {
     },
   },
   cors: {
-    origins: ["http://localhost:3306"],
+    origins: ["http://localhost:3000"],
     maxAge: 3 * 60 * 60,
   },
   port: 9000,

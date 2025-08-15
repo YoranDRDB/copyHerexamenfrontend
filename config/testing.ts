@@ -4,15 +4,15 @@ export default {
     disabled: false,
   },
   cors: {
-    origins: ["http://localhost:3306"],
+    origins: ["http://localhost:3300"],
     maxAge: 3 * 60 * 60,
   },
   auth: {
-    maxDelay: 5000, // ms (0 seconds)
+    maxDelay: 0, // ms (5 seconds)
     argon: {
-      hashLength: 32,
-      timeCost: 6,
-      memoryCost: 2 ** 17,
+      hashLength: 16,
+      timeCost: 2,
+      memoryCost: 2 ** 12,
     },
     jwt: {
       audience: "taakbeheer.hogent.be",

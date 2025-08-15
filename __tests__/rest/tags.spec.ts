@@ -17,28 +17,23 @@ describe("Tags", () => {
     // Log in als gewone gebruiker en admin gebruiker
     authHeader = await login(request);
     adminAuthHeader = await loginAdmin(request);
+    // Seed de tags eenmaal voor alle tests
+    await prisma.tag.createMany({
+      data: [
+        { id: 800, name: "frontend" },
+        { id: 801, name: "backend" },
+      ],
+    });
+  });
+  afterAll(async () => {
+    // Ruim de gezaaide tags op
+    await prisma.tag.deleteMany({
+      where: { id: { in: [800, 801, 802] } },
+    });
   });
 
   const url = "/api/tags";
-
   describe("GET /api/tags", () => {
-    beforeAll(async () => {
-      // Seed de tags
-      await prisma.tag.createMany({
-        data: [
-          { id: 800, name: "frontend" },
-          { id: 801, name: "backend" },
-        ],
-      });
-    });
-
-    afterAll(async () => {
-      // Ruim de gezaaide tags op
-      await prisma.tag.deleteMany({
-        where: { id: { in: [800, 801, 802] } },
-      });
-    });
-
     it("should 200 and return all tags for the signed in user", async () => {
       const response = await request.get(url).set("Authorization", authHeader);
       expect(response.status).toBe(200);
@@ -83,23 +78,6 @@ describe("Tags", () => {
   });
 
   describe("GET /api/tags/:id", () => {
-    beforeAll(async () => {
-      // Zorg ervoor dat de tags zijn gezaaid
-      await prisma.tag.createMany({
-        data: [
-          { id: 800, name: "frontend" },
-          { id: 801, name: "backend" },
-        ],
-      });
-    });
-
-    afterAll(async () => {
-      // Ruim de gezaaide tags op
-      await prisma.tag.deleteMany({
-        where: { id: { in: [800, 801, 802] } },
-      });
-    });
-
     it("should 200 and return the requested tag", async () => {
       const response = await request
         .get(`${url}/800`)
@@ -178,23 +156,6 @@ describe("Tags", () => {
   });
 
   describe("PUT /api/tags/:id", () => {
-    beforeAll(async () => {
-      // Zorg ervoor dat de tags zijn gezaaid
-      await prisma.tag.createMany({
-        data: [
-          { id: 800, name: "frontend" },
-          { id: 801, name: "backend" },
-        ],
-      });
-    });
-
-    afterAll(async () => {
-      // Ruim de gezaaide tags op
-      await prisma.tag.deleteMany({
-        where: { id: { in: [800, 801, 802] } },
-      });
-    });
-
     it("should 200 and update the tag", async () => {
       const response = await request
         .put(`${url}/800`)
@@ -203,6 +164,16 @@ describe("Tags", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.name).toBe("ui/ux");
+    });
+    it("should 400 when creating a tag with an existing name", async () => {
+      const response = await request
+        .post(url)
+        .send({ name: "urgent" })
+        .set("Authorization", authHeader);
+
+      expect(response.status).toBe(400);
+      expect(response.body.code).toBe("VALIDATION_FAILED");
+      expect(response.body.message).toBe("A tag with this name already exists");
     });
 
     it("should 404 when updating a non-existing tag", async () => {
@@ -236,7 +207,7 @@ describe("Tags", () => {
 
     beforeAll(async () => {
       const newTag = await prisma.tag.create({
-        data: {  name: "removeThis" },
+        data: { name: "removeThis" },
       });
       tempTagId = newTag.id;
     });
@@ -252,7 +223,6 @@ describe("Tags", () => {
         .delete(`${url}/${tempTagId}`)
         .set("Authorization", authHeader);
       expect(response.status).toBe(204);
-
     });
 
     it("should 404 if no such tag", async () => {

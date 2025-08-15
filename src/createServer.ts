@@ -4,6 +4,7 @@ import { initializeData, shutdownData } from "./data";
 import installMiddlewares from "./core/installMiddlewares";
 import installRest from "./rest";
 import config from "config";
+import type { Server as HttpServer } from "http";
 import type {
   KoaApplication,
   TaakBeheerState,
@@ -17,6 +18,7 @@ export interface Server {
 }
 export default async function createServer(): Promise<Server> {
   const app = new Koa<TaakBeheerState, TaakBeheerContext>();
+  let server: HttpServer | undefined;
 
   installMiddlewares(app);
   await initializeData();
@@ -28,8 +30,8 @@ export default async function createServer(): Promise<Server> {
 
     start() {
       return new Promise<void>((resolve) => {
-        app.listen(PORT, () => {
-          getLogger().info("🚀 Server listening on ${PORT}");
+        server = app.listen(PORT, () => {
+          getLogger().info(` Server listening on ${PORT}`);
           resolve();
         });
       });
@@ -38,7 +40,8 @@ export default async function createServer(): Promise<Server> {
     async stop() {
       app.removeAllListeners();
       await shutdownData();
-      getLogger().info("Goodbye! 👋");
+      server?.close();
+      getLogger().info("Goodbye!");
     },
   };
 }

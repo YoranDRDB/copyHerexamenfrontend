@@ -17,15 +17,15 @@ export default function withServer(setter: (s: supertest.Agent) => void): void {
           id: 1,
           username: "Test User",
           email: "test.user@hogent.be",
-          passwordhash: passwordHash,
-          role: JSON.stringify([Role.USER]),
+          passwordHash,
+          role: Role.USER,
         },
         {
           id: 2,
           username: "Admin User",
           email: "admin.user@hogent.be",
-          passwordhash: passwordHash,
-          role: JSON.stringify([Role.ADMIN]),
+          passwordHash,
+          role: Role.ADMIN,
         },
       ],
     });
@@ -34,11 +34,12 @@ export default function withServer(setter: (s: supertest.Agent) => void): void {
   });
 
   afterAll(async () => {
-    await prisma.project.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.tag.deleteMany();
-    await prisma.task.deleteMany();
-
+    await prisma.taskTag.deleteMany({});
+    await prisma.taskAssignee.deleteMany({});
+    await prisma.task.deleteMany({});
+    await prisma.project.deleteMany({});
+    await prisma.tag.deleteMany({});
+    await prisma.user.deleteMany({});
     await server.stop();
   });
 }

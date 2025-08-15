@@ -42,7 +42,7 @@ getVersion.validationScheme = null;
  *
  * @param {KoaRouter} parent The parent router to register the routes on.
  */
-export default function installPlacesRoutes(parent: KoaRouter) {
+export default function installHealthRoutes(parent: KoaRouter) {
   const router = new Router<TaakBeheerState, TaakBeheerContext>({
     prefix: "/health",
   });
